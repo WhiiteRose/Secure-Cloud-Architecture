@@ -5,7 +5,11 @@
   import { elasticOut, cubicOut } from 'svelte/easing';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
-  import { coffeeProducts, categories } from '$lib/products';
+  import {
+    coffeeProducts,
+    categories,
+    getFavoritesCount,
+  } from '$lib/products';
   
   let selectedCategory = 'Cappuccino';
   let searchQuery = '';
@@ -35,24 +39,19 @@
     window.addEventListener('scroll', () => {
       showScrollTop = window.scrollY > 200;
     });
-    
-    // Vérifier si nous venons de la page d'accueil via le paramètre d'URL
+  
     comingFromHome = $page.url.searchParams.has('from') && 
                     $page.url.searchParams.get('from') === 'home';
-    
-    // Bloquer le défilement pendant l'animation
+
     document.body.style.overflow = 'hidden';
     
-    // Animation d'entrée avec un court délai
     setTimeout(() => {
       isLoaded = true;
-      // Rétablir le défilement après l'animation
       setTimeout(() => {
         document.body.style.overflow = 'auto';
       }, 800);
     }, 100);
-    
-    // Nettoyage des écouteurs d'événements lors du démontage du composant
+
     return () => {
       window.removeEventListener('scroll', () => {});
     };
@@ -202,11 +201,11 @@
         </svg>
         <span>Home</span>
       </div>
-      <div class="nav-item">
+      <div class="nav-item" on:click={() => goto('/favorites_product')}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <span>Favorites</span>
+        <span>Favorites ({getFavoritesCount()})</span>
       </div>
       <div class="nav-item">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

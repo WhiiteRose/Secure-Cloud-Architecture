@@ -1,12 +1,25 @@
 <!-- src/routes/details_product/[id]/+page.svelte -->
 <script>
     import { page } from '$app/stores';
-    import { goto } from '$app/navigation';
+    import { 
+        addToShoppingBag,
+        addToFavorites,
+        favoritesExists,
+        removeFromFavorites
+    } from '$lib/products';
+    import { onMount } from 'svelte';
 
     let product = JSON.parse($page.url.searchParams.get('product') || '{}');
+    let isFavorite = false;
     
     let selectedSize = 'M';
     let quantity = 1;
+    
+    onMount(() => {
+        if (product) {
+            isFavorite = favoritesExists(product);
+        }
+    });
     
     function selectSize(size) {
       selectedSize = size;
@@ -24,16 +37,26 @@
     
     function addToCart() {
       if (product) {
-        console.log(`Added ${quantity} ${selectedSize} ${product.name} to cart`);
-        // Logique pour ajouter au panier
+        addToShoppingBag({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          size: selectedSize,
+          quantity: quantity
+        });
       }
     }
     
-    function addToFavorites() {
-      if (product) {
-        console.log(`Added ${product.name} to favorites`);
-        // Logique pour ajouter aux favoris
-      }
+    function addToFavoritesPage() {
+        if (product && !isFavorite) {
+            addToFavorites(product);
+            isFavorite = true;
+            console.log(`Added ${product.name} to favorites`);
+        } else if (product) {
+            removeFromFavorites(product);
+            isFavorite = false;
+            console.log(`Removed ${product.name} from favorites`);
+        }
     }
     
     function goBack() {
@@ -62,9 +85,9 @@
           </svg>
         </button>
         <h1>Détails</h1>
-        <button class="favorite-button" on:click={addToFavorites}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <button class="favorite-button {isFavorite ? 'is-favorite' : ''}" on:click={addToFavoritesPage}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill={isFavorite ? "#C87941" : "none"} xmlns="http://www.w3.org/2000/svg">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke={isFavorite ? "#C87941" : "currentColor"} stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
       </header>
@@ -249,11 +272,15 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
   }
   
   .back-button:hover, .favorite-button:hover {
     background-color: #f5f5f5;
+  }
+  
+  .favorite-button.is-favorite {
+    background-color: rgba(200, 121, 65, 0.1);
   }
   
   .product-header h1 {
