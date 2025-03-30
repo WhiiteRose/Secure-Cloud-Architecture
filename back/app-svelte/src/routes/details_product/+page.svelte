@@ -1,6 +1,7 @@
 <!-- src/routes/details_product/[id]/+page.svelte -->
 <script>
     import { page } from '$app/stores';
+    import { goto } from '$app/navigation';
     import { 
         addToShoppingBag,
         addToFavorites,
@@ -42,8 +43,15 @@
           name: product.name,
           price: product.price,
           size: selectedSize,
-          quantity: quantity
+          quantity: quantity,
+          image: product.image,
+          description: product.description,
+          rating: product.rating,
+          reviewCount: product.reviewCount,
+          fullDescription: product.fullDescription,
+          sizes: product.sizes,
         });
+        goto('/shopping_bag');
       }
     }
     
@@ -60,6 +68,10 @@
     }
     
     function goBack() {
+      window.history.back();
+    }
+
+    function removeProduct() {
       window.history.back();
     }
 </script>
@@ -113,7 +125,7 @@
               </div>
               
               <div class="product-actions">
-                <button class="action-button">
+                <button class="action-button" on:click={removeProduct} title="Supprimer">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M4 12V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V12" stroke="#C87941" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M16 6L12 2L8 6" stroke="#C87941" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -136,7 +148,7 @@
           </div>
           
           <div class="product-size-section">
-            <h3>Taille</h3>
+            <h3>Taille <span class="selected-size">Sélectionnée: {selectedSize}</span></h3>
             <div class="size-options">
               {#each product.sizes || ['S', 'M', 'L'] as size}
                 <button 
@@ -162,11 +174,11 @@
             <div class="price-action">
               <div class="price-display">
                 <span class="currency">$</span>
-                <span class="amount">{product.price.toFixed(2)}</span>
+                <span class="amount">{(product.price * quantity).toFixed(2)}</span>
               </div>
               
               <button class="buy-now-btn" on:click={addToCart}>
-                Acheter Maintenant
+                Ajouter au panier
               </button>
             </div>
           </div>
@@ -385,12 +397,14 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s;
   }
   
   .action-button:hover {
     background-color: #f9f9f9;
-    border-color: #ddd;
+    border-color: #C87941;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
   }
   
   /* Description */
@@ -426,6 +440,19 @@
     font-size: 18px;
     margin: 0 0 15px 0;
     color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .selected-size {
+    font-size: 14px;
+    color: #C87941;
+    font-weight: 500;
+    background-color: rgba(200, 121, 65, 0.1);
+    padding: 4px 10px;
+    border-radius: 5px;
+    margin-left: 10px;
   }
   
   .size-options {
@@ -442,7 +469,7 @@
     justify-content: center;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s;
     background-color: #f5f5f5;
     border: 2px solid transparent;
     color: #333;
@@ -450,12 +477,16 @@
   
   .size-button:hover {
     background-color: #eee;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
   }
   
   .size-button.selected {
     background-color: #C87941;
     color: white;
     border-color: #C87941;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(200, 121, 65, 0.3);
   }
   
   /* Price Section */
@@ -489,19 +520,21 @@
   .quantity-btn {
     background: none;
     border: none;
-    width: 24px;
-    height: 24px;
-    font-size: 18px;
+    width: 30px;
+    height: 30px;
+    font-size: 20px;
+    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     color: #666;
-    transition: color 0.2s;
+    transition: all 0.2s;
   }
   
   .quantity-btn:hover {
     color: #C87941;
+    transform: scale(1.2);
   }
   
   .price-action {
@@ -513,12 +546,16 @@
   .price-display {
     display: flex;
     align-items: baseline;
+    background-color: rgba(200, 121, 65, 0.1);
+    padding: 5px 15px;
+    border-radius: 10px;
   }
   
   .currency {
-    font-size: 16px;
+    font-size: 18px;
     color: #C87941;
     font-weight: 600;
+    margin-right: 2px;
   }
   
   .amount {
@@ -581,5 +618,18 @@
     .buy-now-btn {
       width: 100%;
     }
+
+    .product-image-container {
+      padding-bottom: 40%;
+    }
+
+    .product-title-section h2 {
+      font-size: 24px;
+    }
+
+    .product-subtitle {
+      font-size: 14px;
+    }
+
   }
 </style>
