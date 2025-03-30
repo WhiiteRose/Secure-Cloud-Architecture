@@ -10,6 +10,8 @@
     categories,
     getFavoritesCount,
     shoppingBag,
+    getShoppingBag,
+    addToShoppingBag,
   } from '$lib/products';
   
   let selectedCategory = 'Cappuccino';
@@ -17,13 +19,16 @@
   let showScrollTop = false;
   let isLoaded = false;
   let comingFromHome = false;
+  let cartCount = 0;
   
   function filterByCategory(category) {
     selectedCategory = category;
   }
   
-  function addToCart(id) {
-    console.log(`Added product ${id} to cart`);
+  function addToCart(product) {
+    console.log(product);
+    addToShoppingBag(product);
+    cartCount = getShoppingBag().length;
   }
   
   function handleSearch(event) {
@@ -52,6 +57,8 @@
         document.body.style.overflow = 'auto';
       }, 800);
     }, 100);
+
+    cartCount = getShoppingBag().length;
 
     return () => {
       window.removeEventListener('scroll', () => {});
@@ -181,7 +188,7 @@
                   <span class="price">${product.price.toFixed(2)}</span>
                   <button class="add-to-cart" on:click={(event) => {
                     event.stopPropagation();
-                    addToCart(product.id);
+                    addToCart(product);
                   }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M12 5V19M5 12H19" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -214,7 +221,7 @@
           <path d="M20 22C20.5523 22 21 21.5523 21 21C21 20.4477 20.5523 20 20 20C19.4477 20 19 20.4477 19 21C19 21.5523 19.4477 22 20 22Z" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M1 1H5L7.68 14.39C7.77144 14.8504 8.02191 15.264 8.38755 15.5583C8.75318 15.8526 9.2107 16.009 9.68 16H19.4C19.8693 16.009 20.3268 15.8526 20.6925 15.5583C21.0581 15.264 21.3086 14.8504 21.4 14.39L23 6H6" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <span>Cart ({shoppingBag.length})</span>
+        <span>Cart ({cartCount})</span>
       </div>
       <div class="nav-item">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
