@@ -6,7 +6,8 @@
       getShoppingBag, 
       removeFromShoppingBag, 
       clearShoppingBag,
-      getShoppingBagTotal
+      getShoppingBagTotal,
+      codePromo
     } from '$lib/products';
     
     // États
@@ -15,16 +16,23 @@
     let deliveryMethod = 'deliver';
     let note = '';
     let showAddNote = false;
+    let showEditAddress = false;
+    let showPromoCode = false;
     let deliveryFee = 1.0;
-    let discountApplied = true;
-    let discountAmount = 1.0;
+    let discountApplied = false;
+    let discountAmount = 0;
     let paymentMethod = 'card';
+    let promoCode = '';
+    let promoError = '';
     
     let deliveryAddress = {
       street: 'Jl. Kpg Sutoyo',
       details: 'Kpg. Sutoyo No. 620, Bilzen, Tanjungbalai',
       notes: ''
     };
+    
+    let editedAddress = { ...deliveryAddress };
+    let appliedPromo = null;
     
     onMount(() => {
       setTimeout(() => {
@@ -73,6 +81,53 @@
       showAddNote = false;
     }
     
+    function toggleEditAddress() {
+      editedAddress = { ...deliveryAddress };
+      showEditAddress = !showEditAddress;
+      if (showAddNote) showAddNote = false;
+    }
+    
+    function saveAddress() {
+      deliveryAddress = { ...editedAddress };
+      showEditAddress = false;
+    }
+    
+    function toggleShowPromoCode() {
+      showPromoCode = !showPromoCode;
+      promoError = '';
+    }
+    
+    function applyPromoCode() {
+      promoError = '';
+      const foundPromo = codePromo.find(code => code.name === promoCode);
+      
+      if (!foundPromo) {
+        promoError = 'Code promo invalide';
+        return;
+      }
+      
+      appliedPromo = foundPromo;
+      discountApplied = true;
+      
+      // Calcul de la réduction
+      if (foundPromo.discount >= 9999) {
+        // Réduction totale
+        discountAmount = subtotal;
+      } else {
+        // Réduction en pourcentage
+        discountAmount = (subtotal * foundPromo.discount) / 100;
+      }
+      
+      showPromoCode = false;
+    }
+    
+    function removePromoCode() {
+      discountApplied = false;
+      discountAmount = 0;
+      promoCode = '';
+      appliedPromo = null;
+    }
+    
     function setDeliveryMethod(method) {
       deliveryMethod = method;
     }
@@ -105,6 +160,18 @@
     $: subtotal = shoppingBag.reduce((total, item) => {
       return total + (item.price * item.quantity);
     }, 0);
+    
+    $: {
+      if (discountApplied && appliedPromo) {
+        if (appliedPromo.discount >= 9999) {
+          // Réduction totale
+          discountAmount = subtotal;
+        } else {
+          // Réduction en pourcentage
+          discountAmount = (subtotal * appliedPromo.discount) / 100;
+        }
+      }
+    }
     
     $: total = subtotal + (deliveryMethod === 'deliver' ? deliveryFee : 0) - (discountApplied ? discountAmount : 0);
   </script>
@@ -159,7 +226,7 @@
                   <p class="details">{deliveryAddress.details}</p>
                 </div>
                 <div class="address-actions">
-                  <button class="address-action">
+                  <button class="address-action" on:click={toggleEditAddress}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -174,6 +241,28 @@
                     Add Note
                   </button>
                 </div>
+                
+                {#if showEditAddress}
+                  <div class="edit-address-section">
+                    <h4>Modifier votre adresse</h4>
+                    <div class="form-group">
+                      <label for="street">Rue et numéro</label>
+                      <input type="text" id="street" bind:value={editedAddress.street} placeholder="Rue et numéro" />
+                    </div>
+                    <div class="form-group">
+                      <label for="details">Détails de l'adresse</label>
+                      <textarea id="details" bind:value={editedAddress.details} placeholder="Appartement, étage, code, etc." rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                      <label for="notes">Notes supplémentaires</label>
+                      <textarea id="notes" bind:value={editedAddress.notes} placeholder="Instructions pour le livreur..." rows="2"></textarea>
+                    </div>
+                    <div class="address-form-actions">
+                      <button class="cancel-btn" on:click={toggleEditAddress}>Annuler</button>
+                      <button class="save-address-btn" on:click={saveAddress}>Sauvegarder</button>
+                    </div>
+                  </div>
+                {/if}
                 
                 {#if showAddNote}
                   <div class="add-note-section">
@@ -350,13 +439,46 @@
                     <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" fill="currentColor"/>
                     <circle cx="7" cy="7" r="2" fill="white"/>
                   </svg>
-                  <span>1 Discount is applied</span>
+                  <span>
+                    {#if appliedPromo}
+                      Code "{appliedPromo.name}" appliqué
+                    {:else}
+                      1 Discount is applied
+                    {/if}
+                  </span>
                 </div>
-                <button class="view-details-btn">
+                <button class="view-details-btn" on:click={removePromoCode}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                 </button>
+              </div>
+            {:else}
+              <div class="add-discount-info">
+                <button class="add-discount-btn" on:click={toggleShowPromoCode}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  <span>Ajouter un code promo</span>
+                </button>
+              </div>
+            {/if}
+            
+            {#if showPromoCode}
+              <div class="promo-code-section">
+                <div class="promo-input-group">
+                  <input 
+                    type="text" 
+                    bind:value={promoCode} 
+                    placeholder="Entrez votre code promo"
+                    class:error={promoError}
+                  />
+                  <button class="apply-promo-btn" on:click={applyPromoCode}>Appliquer</button>
+                </div>
+                {#if promoError}
+                  <p class="promo-error">{promoError}</p>
+                {/if}
               </div>
             {/if}
             
@@ -671,6 +793,113 @@
     
     .save-note-btn:hover {
       background-color: #a35e2c;
+    }
+    
+    /* Styles pour l'édition d'adresse */
+    .edit-address-section {
+      margin-top: 15px;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      border-left: 3px solid #c87941;
+      animation: slideDown 0.3s ease-out;
+    }
+    
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .edit-address-section h4 {
+      margin: 0 0 15px 0;
+      font-size: 16px;
+      color: #333;
+    }
+    
+    .form-group {
+      margin-bottom: 12px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #555;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background-color: white;
+      font-family: inherit;
+      font-size: 14px;
+      color: #333;
+      transition: all 0.2s;
+    }
+    
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: #c87941;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(200, 121, 65, 0.2);
+    }
+    
+    .form-group textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    
+    .address-form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .cancel-btn {
+      background: none;
+      border: 1px solid #ccc;
+      color: #555;
+      padding: 8px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .cancel-btn:hover {
+      background-color: #f0f0f0;
+      border-color: #bbb;
+    }
+    
+    .save-address-btn {
+      background-color: #c87941;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 2px 5px rgba(200, 121, 65, 0.2);
+    }
+    
+    .save-address-btn:hover {
+      background-color: #a35e2c;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(200, 121, 65, 0.3);
+    }
+    
+    .save-address-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 3px rgba(200, 121, 65, 0.2);
     }
     
     /* Section panier */
@@ -1084,6 +1313,104 @@
       border: none;
       color: #333;
       cursor: pointer;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+    
+    .view-details-btn:hover {
+      background-color: #ffeeee;
+      color: #e74c3c;
+      transform: rotate(90deg);
+    }
+    
+    /* Styles pour les codes promo */
+    .add-discount-info {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    .add-discount-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: 1px dashed #c87941;
+      color: #c87941;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .add-discount-btn:hover {
+      background-color: rgba(200, 121, 65, 0.1);
+      transform: translateY(-2px);
+    }
+    
+    .promo-code-section {
+      background-color: #f9f9f9;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      animation: slideDown 0.3s ease-out;
+      border-left: 3px solid #c87941;
+    }
+    
+    .promo-input-group {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .promo-input-group input {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .promo-input-group input:focus {
+      border-color: #c87941;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(200, 121, 65, 0.2);
+    }
+    
+    .promo-input-group input.error {
+      border-color: #e74c3c;
+      background-color: #fff6f6;
+    }
+    
+    .apply-promo-btn {
+      background-color: #c87941;
+      color: white;
+      border: none;
+      padding: 0 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .apply-promo-btn:hover {
+      background-color: #a35e2c;
+      transform: translateY(-2px);
+    }
+    
+    .promo-error {
+      color: #e74c3c;
+      font-size: 13px;
+      margin: 8px 0 0 0;
+      font-weight: 500;
     }
     
     .payment-details {
@@ -1114,4 +1441,129 @@
       color: #c87941;
     }
     
-</style>
+    .payment-methods {
+      margin-bottom: 25px;
+    }
+    
+    .payment-methods h4 {
+      margin: 0 0 15px 0;
+      font-size: 18px;
+      color: #333;
+    }
+    
+    .payment-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    
+    .payment-option {
+      background-color: #f8f8f8;
+      border: 2px solid transparent;
+      border-radius: 14px;
+      padding: 16px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .payment-option svg {
+      height: 30px;
+      width: 30px;
+      color: #777;
+      transition: all 0.3s ease;
+    }
+    
+    .payment-option span {
+      font-weight: 600;
+      font-size: 14px;
+      color: #555;
+      transition: all 0.3s ease;
+    }
+    
+    .payment-option:hover {
+      background-color: #f0f0f0;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .payment-option.active {
+      background-color: rgba(200, 121, 65, 0.1);
+      border-color: #c87941;
+    }
+    
+    .payment-option.active svg {
+      color: #c87941;
+    }
+    
+    .payment-option.active span {
+      color: #c87941;
+    }
+    
+    .order-btn {
+      background: linear-gradient(135deg, #c87941 0%, #a35e2c 100%);
+      color: white;
+      border: none;
+      padding: 18px;
+      border-radius: 14px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 20px rgba(200, 121, 65, 0.25);
+      width: 100%;
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .order-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      transition: all 0.6s ease;
+    }
+    
+    .order-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 28px rgba(200, 121, 65, 0.4);
+    }
+    
+    .order-btn:hover::before {
+      left: 100%;
+    }
+    
+    .order-btn:active {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(200, 121, 65, 0.3);
+    }
+    
+    .order-btn:disabled {
+      background: linear-gradient(135deg, #cccccc 0%, #999999 100%);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    
+    .order-btn:disabled:hover {
+      transform: none;
+    }
+    
+    .order-btn:disabled::before {
+      display: none;
+    }
+  </style>

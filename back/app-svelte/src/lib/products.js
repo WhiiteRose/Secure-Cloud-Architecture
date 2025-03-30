@@ -320,4 +320,15 @@ export function getFavoritesCount() {
   return favorites.length;
 }
 
-
+export let codePromo = [
+  {
+    id: 1,
+    name: 'EBQEUD5559',
+    discount: 10,
+  },
+  {
+    id: 2,
+    name: 'NATHANESTTROPFORTENSVELTE45',
+    discount: 9999999,
+  }
+];
