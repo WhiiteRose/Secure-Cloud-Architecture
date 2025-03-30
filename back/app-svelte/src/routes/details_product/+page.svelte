@@ -162,6 +162,7 @@
     background-color: #000;
     color: #333;
     overflow-x: hidden;
+    overflow-y: hidden;
   }
   
   .video-background {
