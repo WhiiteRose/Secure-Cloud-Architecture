@@ -31,7 +31,7 @@
     event.currentTarget.classList.add('menu-btn-expanding');
 
     setTimeout(() => {
-      goto('/menu', { replaceState: false });
+      goto('/menu?from=home', { replaceState: false });
     }, 600);
   }
 </script>
@@ -211,6 +211,7 @@
     .coffee-text {
       margin-bottom: 40px;
       max-width: 500px;
+      color: #ffffff;
       text-align: center;
     }
     

@@ -66,7 +66,14 @@
     overflow: hidden;
     width: 100vw;
     max-width: 100%;
-    box-sizing: border-box;
+  }
+  
+  main {
+    position: relative;
+    width: 100vw;
+    max-width: 100%;
+    height: 100vh;
+    overflow: hidden;
   }
   
   .get-started-container {
