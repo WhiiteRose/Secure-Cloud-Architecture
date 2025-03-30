@@ -1,6 +1,6 @@
 FROM alpine AS grosse-montagne
 
-COPY . /app
+COPY back /app
 WORKDIR /app
 
 # Installation des applications nécessaires
@@ -10,8 +10,11 @@ RUN apk add nodejs
 RUN apk add npm
 
 # Installation des librairies
-WORKDIR /app/back
 RUN pip install -r requirements.txt
 
-WORKDIR /app/back/app-svelte
+WORKDIR /app/app-svelte
 RUN npm i
+
+# Execution du conteneur
+WORKDIR /app
+CMD [ "/bin/bash", "run.sh"]
