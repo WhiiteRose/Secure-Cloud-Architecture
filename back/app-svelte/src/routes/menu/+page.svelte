@@ -4,235 +4,14 @@
   import { fade } from 'svelte/transition';
   import { elasticOut, cubicOut } from 'svelte/easing';
   import { page } from '$app/stores';
+  import { goto } from '$app/navigation';
+  import { coffeeProducts, categories } from '$lib/products';
   
   let selectedCategory = 'Cappuccino';
   let searchQuery = '';
   let showScrollTop = false;
   let isLoaded = false;
   let comingFromHome = false;
-  
-  const categories = ['Cappuccino', 'Machiatto', 'Latte', 'Americano', "Expresso", "Mocha"];
-  
-  const coffeeProducts = [
-    //////////////////////////
-    //      Cappuccinos
-    //////////////////////////
-    {
-      id: 1,
-      name: 'Cappuccino',
-      description: 'with Chocolate',
-      price: 4.53,
-      rating: 4.5,
-      image: '/images/cappuccinos/cappuccino_1.png',
-    },
-    {
-      id: 2,
-      name: 'Cappuccino',
-      description: 'with Oat Milk',
-      price: 3.90,
-      rating: 4.3,
-      image: '/images/cappuccinos/cappuccino_2.png'
-    },
-    {
-      id: 3,
-      name: 'Cappuccino',
-      description: 'with Oat Milk',
-      price: 3.90,
-      rating: 4.3,
-      image: '/images/cappuccinos/cappuccino_3.png'
-    },
-    {
-      id: 4,
-      name: 'Cappuccino',
-      description: 'with Vanilla',
-      price: 4.20,
-      rating: 4.7,
-      image: '/images/cappuccinos/cappuccino_4.png'
-    },
-
-
-    //////////////////////////
-    //      Americanos
-    //////////////////////////
-    {
-      id: 5,
-      name: 'Americano',
-      description: 'Extra Strong',
-      price: 3.50,
-      rating: 4.2,
-      image: '/images/americanos/americano_1.png'
-    },
-    {
-      id: 6,
-      name: 'Americano',
-      description: 'With Milk',
-      price: 3.50,
-      rating: 4.2,
-      image: '/images/americanos/americano_2.png'
-    },
-    {
-      id: 7,
-      name: 'Americano',
-      description: 'With Sugar',
-      price: 3.50,
-      rating: 4.2,
-      image: '/images/americanos/americano_3.png'
-    },
-    {
-      id: 8,
-      name: 'Americano',
-      description: 'With Cream',
-      price: 3.50,
-      rating: 4.2,
-      image: '/images/americanos/americano_4.png'
-    },
-
-
-    //////////////////////////
-    //      Machiatto
-    //////////////////////////
-    {
-      id: 9,
-      name: 'Machiatto',
-      description: 'Caramel Flavor',
-      price: 4.80,
-      rating: 4.8,
-      image: '/images/machiatos/machiato_1.png'
-    },
-    {
-      id: 10,
-      name: 'Machiatto',
-      description: 'Vanilla Flavor',
-      price: 4.80,
-      rating: 4.8,
-      image: '/images/machiatos/machiato_2.png'
-    },
-    {
-      id: 11,
-      name: 'Machiatto',
-      description: 'Cinnamon Flavor',
-      price: 4.80,
-      rating: 4.8,
-      image: '/images/machiatos/machiato_3.png'
-    },
-    {
-      id: 12,
-      name: 'Machiatto',
-      description: 'Cinnamon Flavor',
-      price: 4.80,
-      rating: 4.8,
-      image: '/images/machiatos/machiato_4.png'
-    },
-
-    //////////////////////////
-    //      Latte
-    //////////////////////////
-    {
-      id: 13,
-      name: 'Latte',
-      description: 'With Milk',
-      price: 4.50,
-      rating: 4.5,
-      image: '/images/lattes/latte_1.png'
-    },
-    {
-      id: 14,
-      name: 'Latte',
-      description: 'With Sugar',
-      price: 4.50,
-      rating: 4.5,
-      image: '/images/lattes/latte_2.png'
-    },
-    {
-      id: 15,
-      name: 'Latte',
-      description: 'With Cream',
-      price: 4.50,
-      rating: 4.5,
-      image: '/images/lattes/latte_3.png'
-    },
-    {
-      id: 16,
-      name: 'Latte',
-      description: 'With Chocolate',
-      price: 4.50,
-      rating: 4.5,
-      image: '/images/lattes/latte_4.png'
-    },
-
-    //////////////////////////
-    //      Mocha
-    //////////////////////////
-    {
-      id: 17,
-      name: 'Mocha',
-      description: 'With Milk',
-      price: 4.50,
-      rating: 4.5,
-      image: '/images/mochas/mocha_1.png'
-    },
-    {
-      id: 18,
-      name: 'Mocha',
-      description: 'With Sugar',
-      price: 4.50,
-      rating: 4.5,
-      image: '/images/mochas/mocha_2.png'
-    },  
-    {
-      id: 19,
-      name: 'Mocha',
-      description: 'With Cream',
-      price: 4.50,
-      rating: 4.5, 
-      image: '/images/mochas/mocha_3.png'
-    },
-    {
-      id: 20,
-      name: 'Mocha',
-      description: 'With Chocolate',
-      price: 4.50,
-      rating: 4.5,
-      image: '/images/mochas/mocha_4.png'
-    },
-
-    //////////////////////////
-    //      Expresso
-    //////////////////////////
-    {
-      id: 21,
-      name: 'Expresso',
-      description: 'With Milk',
-      price: 4.50,
-      rating: 4.5,
-      image: '/images/expressos/expresso_1.png'
-    },
-    {
-      id: 22,
-      name: 'Expresso',
-      description: 'With Sugar',
-      price: 4.50,
-      rating: 4.5,
-      image: '/images/expressos/expresso_2.png'
-    },
-    {
-      id: 23,
-      name: 'Expresso',
-      description: 'With Cream',
-      price: 4.50,
-      rating: 4.5,
-      image: '/images/expressos/expresso_3.png'
-    },
-    {
-      id: 24,
-      name: 'Expresso',
-      description: 'With Chocolate',
-      price: 4.50,
-      rating: 4.5,
-      image: '/images/expressos/expresso_4.png'
-    }
-
-  ];
   
   function filterByCategory(category) {
     selectedCategory = category;
@@ -286,6 +65,11 @@
                          p.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  function handleProductClick(product) {
+    console.log(product);
+    goto(`/details_product?product=${JSON.stringify(product)}`);
+  }
 </script>
 
 <svelte:head>
@@ -378,7 +162,7 @@
         
         <div class="coffee-grid">
           {#each filteredProducts as product}
-            <div class="coffee-card">
+            <div class="coffee-card" on:click={() => handleProductClick(product)}>
               <div class="coffee-image">
                 <img src={product.image} alt={product.name} />
                 <div class="rating">
@@ -395,7 +179,10 @@
                 
                 <div class="price-action">
                   <span class="price">${product.price.toFixed(2)}</span>
-                  <button class="add-to-cart" on:click={() => addToCart(product.id)}>
+                  <button class="add-to-cart" on:click={(event) => {
+                    event.stopPropagation();
+                    addToCart(product.id);
+                  }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M12 5V19M5 12H19" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
