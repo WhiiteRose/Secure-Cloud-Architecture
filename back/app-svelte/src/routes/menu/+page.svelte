@@ -1,19 +1,22 @@
 <!-- src/routes/shop/+page.svelte -->
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
   import { fade } from 'svelte/transition';
   import { elasticOut, cubicOut } from 'svelte/easing';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
+  import type { Product, PageData } from '$lib/types';
+
   import {
-    coffeeProducts,
-    categories,
     getFavoritesCount,
     shoppingBag,
     getShoppingBag,
     addToShoppingBag,
   } from '$lib/products';
   
+  export let data: PageData;
+  let coffeeProducts: Product[] = data.products || [];
+  let categories: string[] = data.categories || [];
   let selectedCategory = 'Cappuccino';
   let searchQuery = '';
   let showScrollTop = false;
@@ -21,23 +24,23 @@
   let comingFromHome = false;
   let cartCount = 0;
   
-  function filterByCategory(category) {
+  function filterByCategory(category: string): void {
     selectedCategory = category;
   }
   
-  function addToCart(product) {
+  function addToCart(product: Product): void {
     console.log(product);
     addToShoppingBag(product);
     cartCount = getShoppingBag().length;
   }
   
-  function handleSearch(event) {
+  function handleSearch(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
       console.log(`Recherche: ${searchQuery}`);
     }
   }
   
-  function scrollToTop() {
+  function scrollToTop(): void {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   
@@ -65,7 +68,7 @@
     };
   });
   
-  $: filteredProducts = coffeeProducts.filter(p => {
+  $: filteredProducts = coffeeProducts.filter((p: Product) => {
     const matchesCategory = p.name === selectedCategory || selectedCategory === 'All';
     const matchesSearch = searchQuery === '' || 
                          p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -73,7 +76,7 @@
     return matchesCategory && matchesSearch;
   });
 
-  function handleProductClick(product) {
+  function handleProductClick(product: Product): void {
     console.log(product);
     goto(`/details_product?product=${JSON.stringify(product)}`);
   }

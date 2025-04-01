@@ -1,4 +1,5 @@
 from flask import Flask, request, Response, send_from_directory, jsonify
+from flask_cors import CORS
 import atexit
 import os
 import re
@@ -44,6 +45,9 @@ class SvelteKitBridge:
         
         if request_data is None:
             request_data = {}
+            
+        request_data['products'] = SHOP_PRODUCTS
+
         try:
             response = requests.get(f'http://localhost:3000{path}', headers=request_data.get('headers', {}))
             return response.text
@@ -51,6 +55,7 @@ class SvelteKitBridge:
             return f"<p>Erreur lors du rendu SvelteKit: {str(e)}</p>"
 
 app = Flask(__name__)
+CORS(app)
 
 BUILD_DIR = './app-svelte/build'
 STATIC_DIR = './app-svelte/static'
@@ -442,24 +447,28 @@ def get_shop_code_promo():
 
 @app.route('/api/shop/add-to-favorites', methods=['POST'])
 def add_to_favorites():
+    global FAVORITES
     data = request.json
     FAVORITES.append(data)
     return jsonify({"message": "Product added to favorites"}), 200
 
 @app.route('/api/shop/add-to-shopping-bag', methods=['POST'])
 def add_to_shopping_bag():
+    global SHOPPING_BAG
     data = request.json
     SHOPPING_BAG.append(data)
     return jsonify({"message": "Product added to shopping bag"}), 200
 
 @app.route('/api/shop/remove-from-favorites', methods=['POST'])
 def remove_from_favorites():
+    global FAVORITES
     data = request.json
     FAVORITES = [item for item in FAVORITES if item['id'] != data['id']]
     return jsonify({"message": "Product removed from favorites"}), 200
 
 @app.route('/api/shop/remove-from-shopping-bag', methods=['POST'])
 def remove_from_shopping_bag():
+    global SHOPPING_BAG
     data = request.json
     SHOPPING_BAG = [item for item in SHOPPING_BAG if item['id'] != data['id']]
     return jsonify({"message": "Product removed from shopping bag"}), 200
@@ -470,12 +479,14 @@ def remove_from_shopping_bag():
 
 @app.route('/api/shop/delete-favorite', methods=['DELETE'])
 def delete_favorite():
+    global FAVORITES
     data = request.json
     FAVORITES = [item for item in FAVORITES if item['id'] != data['id']]
     return jsonify({"message": "Favorite deleted"}), 200
 
 @app.route('/api/shop/delete-shopping-bag', methods=['DELETE'])
 def delete_shopping_bag():
+    global SHOPPING_BAG
     data = request.json
     SHOPPING_BAG = [item for item in SHOPPING_BAG if item['id'] != data['id']]
     return jsonify({"message": "Shopping bag deleted"}), 200
@@ -486,6 +497,7 @@ def delete_shopping_bag():
 
 @app.route('/api/shop/update-favorite-status', methods=['PATCH'])
 def update_favorite_status():
+    global FAVORITES
     data = request.json
     for item in FAVORITES:
         if item['id'] == data['id']:
