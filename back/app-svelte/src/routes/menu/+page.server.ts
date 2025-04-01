@@ -14,8 +14,11 @@ export async function load({
       fetch('http://localhost:5000/api/shop/categories')
     ]);
 
-    const products: Product[] = await productsResponse.json();
-    const categories: string[] = await categoriesResponse.json();
+    const [products, categories] = await Promise.all([
+      productsResponse.json(),
+      categoriesResponse.json()
+    ]);
+
 
     return {
       products: products,
