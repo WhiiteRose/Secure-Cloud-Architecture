@@ -255,7 +255,7 @@
         Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
       background-color: #f5f5f5;
     }
-    
+
     .favorites-container {
       width: 100%;
       max-width: 1200px;
@@ -264,6 +264,7 @@
       box-sizing: border-box;
       min-height: 100vh;
       position: relative;
+      background-color: #f5f5f5;
     }
     
     .favorites-header {

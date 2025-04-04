@@ -48,18 +48,34 @@
     window.addEventListener('scroll', () => {
       showScrollTop = window.scrollY > 200;
     });
-  
-    comingFromHome = $page.url.searchParams.has('from') && 
-                    $page.url.searchParams.get('from') === 'home';
 
-    document.body.style.overflow = 'hidden';
+    comingFromHome = $page.url.searchParams.has('from') && 
+                  $page.url.searchParams.get('from') === 'home';
+
+    const currentUrl = window.location.href;
+    const visitedUrls = JSON.parse(sessionStorage.getItem('visitedUrls') || '[]');
+    const hasVisitedBefore = visitedUrls.includes(currentUrl);
+
+    comingFromHome = comingFromHome && !hasVisitedBefore;
+
+    if (!hasVisitedBefore) {
+      visitedUrls.push(currentUrl);
+      sessionStorage.setItem('visitedUrls', JSON.stringify(visitedUrls));
+    }
+
+    if (comingFromHome) {
+      document.body.style.overflow = 'hidden';
     
-    setTimeout(() => {
-      isLoaded = true;
       setTimeout(() => {
-        document.body.style.overflow = 'auto';
-      }, 800);
-    }, 100);
+        isLoaded = true;
+        setTimeout(() => {
+          document.body.style.overflow = 'auto';
+        }, 800);
+      }, 100);
+    } else {
+      isLoaded = true;
+      document.body.style.overflow = 'auto';
+    }
 
     cartCount = getShoppingBag().length;
 
@@ -95,8 +111,10 @@
     <div class="overlay"></div>
   </div>
   
-  <div class="page-entrance-animation" class:active={isLoaded} class:from-home={comingFromHome}></div>
-  
+  {#if comingFromHome}
+    <div class="page-entrance-animation" class:active={isLoaded} class:from-home={comingFromHome}></div>
+  {/if}
+
   {#if isLoaded}
     <header class="shop-header" 
       in:fade={{ duration: 800, delay: 200, easing: cubicOut }}>
